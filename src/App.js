@@ -15,7 +15,9 @@ function App() {
       <MyNav />
       <MyJumbotron />
       {/* <AllTheBooks /> */}
-      <BookList books={fantasy} />
+      <div id="book-list">
+        <BookList books={fantasy} />
+      </div>
       <MyFooter />
     </Container>
   )

@@ -1,6 +1,6 @@
 import { Button, ListGroup } from 'react-bootstrap'
 
-const SingleComment = ({ comment }) => {
+const SingleComment = ({ comment, refreshComments }) => {
   const deleteComment = async (asin) => {
     try {
       let response = await fetch(
@@ -14,6 +14,10 @@ const SingleComment = ({ comment }) => {
       )
       if (response.ok) {
         alert('Comment was deleted successfully!')
+        // Stessa idea di AddComment: il commento è stato cancellato sul
+        // server, avvisiamo CommentArea di rifare la fetch così sparisce
+        // subito anche dalla lista a schermo.
+        refreshComments()
       } else {
         alert('Error - comment was NOT deleted!')
       }

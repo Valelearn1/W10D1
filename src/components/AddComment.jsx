@@ -59,6 +59,10 @@ class AddComment extends Component {
             elementId: this.props.asin,
           },
         });
+        // Il commento è stato salvato sul server, ma CommentArea non lo sa
+        // ancora: this.props.refreshComments() rifà la fetch delle recensioni
+        // in CommentArea, così la nuova recensione compare subito in lista.
+        this.props.refreshComments();
       } else {
         console.log("error");
         alert("something went wrong");

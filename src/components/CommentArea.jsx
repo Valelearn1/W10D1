@@ -78,9 +78,18 @@ class CommentArea extends Component {
         {!this.props.asin && <p>Select a book to see any reviews.</p>}
         {this.state.isLoading && <Loading />}
         {this.state.isError && <Error />}
-        {/* AddComment ha senso solo se sappiamo a quale libro riferire il commento */}
-        {this.props.asin && <AddComment asin={this.props.asin} />}
-        <CommentList commentsToShow={this.state.comments} />
+        {/* Passiamo fetchComments in giù come prop "refreshComments": è la
+            stessa funzione già usata da componentDidMount/componentDidUpdate.
+            Così, quando AddComment o SingleComment fanno una POST/DELETE con
+            successo, possono richiamarla per far ricaricare la lista senza
+            bisogno di cambiare libro o ricaricare la pagina. */}
+        {this.props.asin && (
+          <AddComment asin={this.props.asin} refreshComments={this.fetchComments} />
+        )}
+        <CommentList
+          commentsToShow={this.state.comments}
+          refreshComments={this.fetchComments}
+        />
       </div>
     );
   }
