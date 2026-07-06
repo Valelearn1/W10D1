@@ -1,46 +1,72 @@
-import { Component } from 'react'
-import { Button, Form } from 'react-bootstrap'
+import { Component } from "react";
+import { Button, Form } from "react-bootstrap";
 
 class AddComment extends Component {
   state = {
     comment: {
-      comment: '',
+      comment: "",
       rate: 1,
       elementId: this.props.asin,
     },
+  };
+
+  componentDidUpdate(prevProps) {
+    // BUG che la consegna chiedeva di scovare: "elementId" viene letto da
+    // this.props.asin solo qui sopra, nell'inizializzazione dello state.
+    // Quel codice gira UNA VOLTA SOLA, quando il componente viene creato.
+    //
+    // Con la nuova struttura, AddComment resta montato quando l'utente passa
+    // da un libro all'altro (cambia solo la prop "asin" che riceve da
+    // CommentArea) — quindi senza questo controllo, elementId resterebbe
+    // congelato al primo libro selezionato, e le recensioni verrebbero
+    // salvate sempre sullo stesso libro.
+    //
+    // Appena ci accorgiamo che l'asin ricevuto è cambiato, resettiamo tutto
+    // il form (testo e voto compresi): ha senso, perché stiamo iniziando una
+    // recensione per un libro diverso.
+    if (prevProps.asin !== this.props.asin) {
+      this.setState({
+        comment: {
+          comment: "",
+          rate: 1,
+          elementId: this.props.asin,
+        },
+      });
+    }
   }
 
   sendComment = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       let response = await fetch(
-        'https://striveschool-api.herokuapp.com/api/comments',
+        "https://striveschool-api.herokuapp.com/api/comments",
         {
-          method: 'POST',
+          method: "POST",
           body: JSON.stringify(this.state.comment),
           headers: {
-            'Content-type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTNlY2E0NjE0NDAwMTVlMDVjZjMiLCJpYXQiOjE3ODI5OTM5MDAsImV4cCI6MTc4NDIwMzUwMH0.BfZqaFoCGBdXZSZRNKmGHKCm2T8TxxdiDYjh6rzXXb8',
+            "Content-type": "application/json",
+            Authorization:
+              "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2YTQ2NTNlY2E0NjE0NDAwMTVlMDVjZjMiLCJpYXQiOjE3ODI5OTM5MDAsImV4cCI6MTc4NDIwMzUwMH0.BfZqaFoCGBdXZSZRNKmGHKCm2T8TxxdiDYjh6rzXXb8",
           },
-        }
-      )
+        },
+      );
       if (response.ok) {
-        alert('Comment was sent!')
+        alert("Comment was sent!");
         this.setState({
           comment: {
-            comment: '',
+            comment: "",
             rate: 1,
             elementId: this.props.asin,
           },
-        })
+        });
       } else {
-        console.log('error')
-        alert('something went wrong')
+        console.log("error");
+        alert("something went wrong");
       }
     } catch (error) {
-      console.log('error')
+      console.log("error");
     }
-  }
+  };
 
   render() {
     return (
@@ -88,8 +114,8 @@ class AddComment extends Component {
           </Button>
         </Form>
       </div>
-    )
+    );
   }
 }
 
-export default AddComment
+export default AddComment;
