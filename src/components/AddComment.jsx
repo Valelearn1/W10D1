@@ -1,48 +1,32 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import { Button, Form } from "react-bootstrap";
 
-class AddComment extends Component {
-  state = {
-    comment: {
+const AddComment = (props) => {
+  const [newComment, setNewComment] = useState({
+    comment: "",
+    rate: 1,
+    elementId: props.asin,
+  });
+
+  // L'array di dipendenze [props.asin] fa girare questo effetto ogni volta
+  // che l'asin cambia, sostituendo il controllo manuale
+  // "prevProps.asin !== props.asin" di componentDidUpdate.
+  useEffect(() => {
+    setNewComment({
       comment: "",
       rate: 1,
-      elementId: this.props.asin,
-    },
-  };
+      elementId: props.asin,
+    });
+  }, [props.asin]);
 
-  componentDidUpdate(prevProps) {
-    // BUG che la consegna chiedeva di scovare: "elementId" viene letto da
-    // this.props.asin solo qui sopra, nell'inizializzazione dello state.
-    // Quel codice gira UNA VOLTA SOLA, quando il componente viene creato.
-    //
-    // Con la nuova struttura, AddComment resta montato quando l'utente passa
-    // da un libro all'altro (cambia solo la prop "asin" che riceve da
-    // CommentArea) — quindi senza questo controllo, elementId resterebbe
-    // congelato al primo libro selezionato, e le recensioni verrebbero
-    // salvate sempre sullo stesso libro.
-    //
-    // Appena ci accorgiamo che l'asin ricevuto è cambiato, resettiamo tutto
-    // il form (testo e voto compresi): ha senso, perché stiamo iniziando una
-    // recensione per un libro diverso.
-    if (prevProps.asin !== this.props.asin) {
-      this.setState({
-        comment: {
-          comment: "",
-          rate: 1,
-          elementId: this.props.asin,
-        },
-      });
-    }
-  }
-
-  sendComment = async (e) => {
+  const sendComment = async (e) => {
     e.preventDefault();
     try {
       let response = await fetch(
         "https://striveschool-api.herokuapp.com/api/comments",
         {
           method: "POST",
-          body: JSON.stringify(this.state.comment),
+          body: JSON.stringify(newComment),
           headers: {
             "Content-type": "application/json",
             Authorization:
@@ -52,17 +36,12 @@ class AddComment extends Component {
       );
       if (response.ok) {
         alert("Comment was sent!");
-        this.setState({
-          comment: {
-            comment: "",
-            rate: 1,
-            elementId: this.props.asin,
-          },
+        setNewComment({
+          comment: "",
+          rate: 1,
+          elementId: props.asin,
         });
-        // Il commento è stato salvato sul server, ma CommentArea non lo sa
-        // ancora: this.props.refreshComments() rifà la fetch delle recensioni
-        // in CommentArea, così la nuova recensione compare subito in lista.
-        this.props.refreshComments();
+        props.refreshComments();
       } else {
         console.log("error");
         alert("something went wrong");
@@ -72,54 +51,48 @@ class AddComment extends Component {
     }
   };
 
-  render() {
-    return (
-      <div className="my-3">
-        <Form onSubmit={this.sendComment}>
-          <Form.Group>
-            <Form.Label>Comment text</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Add comment here"
-              value={this.state.comment.comment}
-              onChange={(e) =>
-                this.setState({
-                  comment: {
-                    ...this.state.comment,
-                    comment: e.target.value,
-                  },
-                })
-              }
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Rating</Form.Label>
-            <Form.Control
-              as="select"
-              value={this.state.comment.rate}
-              onChange={(e) =>
-                this.setState({
-                  comment: {
-                    ...this.state.comment,
-                    rate: e.target.value,
-                  },
-                })
-              }
-            >
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>5</option>
-            </Form.Control>
-          </Form.Group>
-          <Button variant="primary" type="submit">
-            Submit
-          </Button>
-        </Form>
-      </div>
-    );
-  }
-}
+  return (
+    <div className="my-3">
+      <Form onSubmit={sendComment}>
+        <Form.Group>
+          <Form.Label>Comment text</Form.Label>
+          <Form.Control
+            type="text"
+            placeholder="Add comment here"
+            value={newComment.comment}
+            onChange={(e) =>
+              setNewComment({
+                ...newComment,
+                comment: e.target.value,
+              })
+            }
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Rating</Form.Label>
+          <Form.Control
+            as="select"
+            value={newComment.rate}
+            onChange={(e) =>
+              setNewComment({
+                ...newComment,
+                rate: e.target.value,
+              })
+            }
+          >
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </Form.Control>
+        </Form.Group>
+        <Button variant="primary" type="submit">
+          Submit
+        </Button>
+      </Form>
+    </div>
+  );
+};
 
 export default AddComment;

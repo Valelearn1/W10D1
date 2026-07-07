@@ -1,57 +1,25 @@
-import { Component } from "react";
+import { useState, useEffect } from "react";
 import CommentList from "./CommentList";
 import AddComment from "./AddComment";
 import Loading from "./Loading";
 import Error from "./Error";
 
-class CommentArea extends Component {
+const CommentArea = (props) => {
   // isLoading parte da false: finché non è selezionato un libro (asin è null)
   // non c'è nessuna fetch in corso, quindi non ha senso mostrare uno spinner.
-  state = {
-    comments: [],
-    isLoading: false,
-    isError: false,
-  };
+  const [comments, setComments] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  componentDidMount() {
-    // Se l'utente ha già un libro selezionato nel momento in cui CommentArea
-    // viene creata, carichiamo subito le sue recensioni.
-    if (this.props.asin) {
-      this.fetchComments();
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    // CommentArea ora resta sempre montata: quando l'utente clicca un altro
-    // libro, non viene ricreata da zero, riceve solo un nuovo valore di
-    // this.props.asin. componentDidUpdate è il punto giusto per reagire a
-    // questo cambiamento nei componenti a classe.
-    //
-    // Il controllo "prevProps.asin !== this.props.asin" è FONDAMENTALE:
-    // componentDidUpdate viene richiamato ad ogni render (quindi anche dopo
-    // ogni setState fatto qui dentro). Senza questo confronto, fetchComments
-    // farebbe setState, che farebbe scattare di nuovo componentDidUpdate, che
-    // richiamerebbe ancora fetchComments... un loop infinito.
-    if (prevProps.asin !== this.props.asin) {
-      if (this.props.asin) {
-        this.fetchComments();
-      } else {
-        // Nessun libro selezionato (es. l'utente ha deselezionato): puliamo
-        // lo stato invece di lasciare in giro le recensioni del libro precedente.
-        this.setState({ comments: [], isLoading: false, isError: false });
-      }
-    }
-  }
-
-  // Stessa identica logica di fetch che prima viveva solo in componentDidMount,
-  // estratta in un metodo a parte così può essere richiamata sia al primo
-  // caricamento sia ogni volta che cambia il libro selezionato.
-  fetchComments = async () => {
-    this.setState({ isLoading: true, isError: false });
+  // Stessa funzione richiamata sia dall'useEffect qui sotto sia da AddComment
+  // e SingleComment come prop "refreshComments", per ricaricare le recensioni
+  // dopo una POST/DELETE senza cambiare libro.
+  const fetchComments = async () => {
+    setIsLoading(true);
+    setIsError(false);
     try {
       let response = await fetch(
-        "https://striveschool-api.herokuapp.com/api/comments/" +
-          this.props.asin,
+        "https://striveschool-api.herokuapp.com/api/comments/" + props.asin,
         {
           headers: {
             Authorization:
@@ -61,38 +29,47 @@ class CommentArea extends Component {
       );
       if (response.ok) {
         let comments = await response.json();
-        this.setState({ comments: comments, isLoading: false, isError: false });
+        setComments(comments);
+        setIsLoading(false);
+        setIsError(false);
       } else {
-        this.setState({ isLoading: false, isError: true });
+        setIsLoading(false);
+        setIsError(true);
       }
     } catch (error) {
-      this.setState({ isLoading: false, isError: true });
+      setIsLoading(false);
+      setIsError(true);
     }
   };
 
-  render() {
-    return (
-      <div className="text-center">
-        {/* Sezione sempre visibile: se non c'è ancora un libro selezionato
-            mostriamo un messaggio invece di lasciare l'area vuota o rotta. */}
-        {!this.props.asin && <p>Select a book to see any reviews.</p>}
-        {this.state.isLoading && <Loading />}
-        {this.state.isError && <Error />}
-        {/* Passiamo fetchComments in giù come prop "refreshComments": è la
-            stessa funzione già usata da componentDidMount/componentDidUpdate.
-            Così, quando AddComment o SingleComment fanno una POST/DELETE con
-            successo, possono richiamarla per far ricaricare la lista senza
-            bisogno di cambiare libro o ricaricare la pagina. */}
-        {this.props.asin && (
-          <AddComment asin={this.props.asin} refreshComments={this.fetchComments} />
-        )}
-        <CommentList
-          commentsToShow={this.state.comments}
-          refreshComments={this.fetchComments}
-        />
-      </div>
-    );
-  }
-}
+  // L'array di dipendenze [props.asin] fa girare questo effetto sia al primo
+  // montaggio sia ogni volta che l'asin cambia, coprendo insieme quello che
+  // prima facevano componentDidMount e componentDidUpdate.
+  useEffect(() => {
+    if (props.asin) {
+      fetchComments();
+    } else {
+      // Nessun libro selezionato (es. l'utente ha deselezionato): puliamo
+      // lo stato invece di lasciare in giro le recensioni del libro precedente.
+      setComments([]);
+      setIsLoading(false);
+      setIsError(false);
+    }
+  }, [props.asin]);
+
+  return (
+    <div className="text-center">
+      {/* Sezione sempre visibile: se non c'è ancora un libro selezionato
+          mostriamo un messaggio invece di lasciare l'area vuota o rotta. */}
+      {!props.asin && <p>Select a book to see any reviews.</p>}
+      {isLoading && <Loading />}
+      {isError && <Error />}
+      {props.asin && (
+        <AddComment asin={props.asin} refreshComments={fetchComments} />
+      )}
+      <CommentList commentsToShow={comments} refreshComments={fetchComments} />
+    </div>
+  );
+};
 
 export default CommentArea;
