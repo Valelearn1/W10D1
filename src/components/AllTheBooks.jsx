@@ -10,7 +10,7 @@ const AllTheBooks = () => {
         return (
           <Col xs={12} md={4} key={book.asin}>
             <Card className="book-cover">
-              <Card.Img variant="top" src={book.img} />
+              <Card.Img variant="top" src={book.img} alt={book.title} />
               <Card.Body>
                 <Card.Title>{book.title}</Card.Title>
               </Card.Body>

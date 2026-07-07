@@ -25,12 +25,16 @@ class SingleBook extends Component {
           <Card.Img
             variant="top"
             src={this.props.book.img}
+            alt={this.props.book.title}
             style={{ height: "250px", objectFit: "cover" }}
           />
           <Card.Body>
             <Card.Title style={{ color: "black" }}>
               {this.props.book.title}
             </Card.Title>
+            <Card.Text style={{ color: "black" }}>
+              ${this.props.book.price.toFixed(2)}
+            </Card.Text>
           </Card.Body>
         </Card>
       </>

@@ -2,6 +2,9 @@ import { Button, ListGroup } from 'react-bootstrap'
 
 const SingleComment = ({ comment, refreshComments }) => {
   const deleteComment = async (asin) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) {
+      return
+    }
     try {
       let response = await fetch(
         'https://striveschool-api.herokuapp.com/api/comments/' + asin,
@@ -28,6 +31,10 @@ const SingleComment = ({ comment, refreshComments }) => {
 
   return (
     <ListGroup.Item>
+      <div>
+        {'★'.repeat(Number(comment.rate)) +
+          '☆'.repeat(5 - Number(comment.rate))}
+      </div>
       {comment.comment}
       <Button
         variant="danger"
