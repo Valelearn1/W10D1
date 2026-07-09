@@ -1,6 +1,15 @@
-import { Button, ListGroup } from 'react-bootstrap'
+import { useState, useEffect } from 'react'
+import { Alert, Button, ListGroup } from 'react-bootstrap'
 
 const SingleComment = ({ comment, refreshComments }) => {
+  const [feedback, setFeedback] = useState(null)
+
+  useEffect(() => {
+    if (!feedback) return
+    const timer = setTimeout(() => setFeedback(null), 4000)
+    return () => clearTimeout(timer)
+  }, [feedback])
+
   const deleteComment = async (asin) => {
     if (!window.confirm('Are you sure you want to delete this review?')) {
       return
@@ -16,21 +25,30 @@ const SingleComment = ({ comment, refreshComments }) => {
         }
       )
       if (response.ok) {
-        alert('Comment was deleted successfully!')
         // Stessa idea di AddComment: il commento è stato cancellato sul
         // server, avvisiamo CommentArea di rifare la fetch così sparisce
         // subito anche dalla lista a schermo.
         refreshComments()
       } else {
-        alert('Error - comment was NOT deleted!')
+        setFeedback({ variant: 'danger', message: 'Errore: la recensione non è stata cancellata.' })
       }
     } catch (error) {
-      alert('Error - comment was NOT deleted!')
+      setFeedback({ variant: 'danger', message: 'Errore: la recensione non è stata cancellata.' })
     }
   }
 
   return (
     <ListGroup.Item>
+      {feedback && (
+        <Alert
+          variant={feedback.variant}
+          onClose={() => setFeedback(null)}
+          dismissible
+          className="mb-2"
+        >
+          {feedback.message}
+        </Alert>
+      )}
       <div>
         {'★'.repeat(Number(comment.rate)) +
           '☆'.repeat(5 - Number(comment.rate))}

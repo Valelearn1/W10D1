@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Alert, Button, Form } from "react-bootstrap";
 
 const AddComment = (props) => {
   const [newComment, setNewComment] = useState({
@@ -7,6 +7,21 @@ const AddComment = (props) => {
     rate: 1,
     elementId: props.asin,
   });
+
+  // feedback tiene il messaggio da mostrare nell'Alert (o null se non c'è
+  // niente da mostrare) insieme al variant bootstrap ("success"/"danger").
+  const [feedback, setFeedback] = useState(null);
+
+  // Ogni volta che feedback cambia (e non è null), parte un timer che lo
+  // pulisce da solo dopo 4 secondi. Il "return" dentro useEffect è la
+  // funzione di cleanup: React la richiama prima di rieseguire l'effetto
+  // (o quando il componente si smonta), qui serve per annullare il timer
+  // precedente se un nuovo feedback arriva prima che scada.
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(null), 4000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   // L'array di dipendenze [props.asin] fa girare questo effetto ogni volta
   // che l'asin cambia, sostituendo il controllo manuale
@@ -35,7 +50,7 @@ const AddComment = (props) => {
         },
       );
       if (response.ok) {
-        alert("Comment was sent!");
+        setFeedback({ variant: "success", message: "Recensione inviata!" });
         setNewComment({
           comment: "",
           rate: 1,
@@ -43,16 +58,30 @@ const AddComment = (props) => {
         });
         props.refreshComments();
       } else {
-        console.log("error");
-        alert("something went wrong");
+        setFeedback({
+          variant: "danger",
+          message: "Qualcosa è andato storto, riprova.",
+        });
       }
     } catch (error) {
-      console.log("error");
+      setFeedback({
+        variant: "danger",
+        message: "Qualcosa è andato storto, riprova.",
+      });
     }
   };
 
   return (
     <div className="my-3">
+      {feedback && (
+        <Alert
+          variant={feedback.variant}
+          onClose={() => setFeedback(null)}
+          dismissible
+        >
+          {feedback.message}
+        </Alert>
+      )}
       <Form onSubmit={sendComment}>
         <Form.Group>
           <Form.Label>Comment text</Form.Label>
