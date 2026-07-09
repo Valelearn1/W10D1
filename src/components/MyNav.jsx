@@ -1,12 +1,13 @@
 import { Navbar, Nav } from 'react-bootstrap'
+import { Link } from 'react-router-dom'
 
 const MyNav = () => (
   <Navbar bg="dark" variant="dark">
-    <Navbar.Brand href="#home">EpiBooks</Navbar.Brand>
+    <Navbar.Brand as={Link} to="/">EpiBooks</Navbar.Brand>
     <Nav className="mr-auto">
-      <Nav.Link href="#home">Shop</Nav.Link>
-      <Nav.Link href="#about">About</Nav.Link>
-      <Nav.Link href="#browse">Browse</Nav.Link>
+      <Nav.Link as={Link} to="/shop">Shop</Nav.Link>
+      <Nav.Link as={Link} to="/about">About</Nav.Link>
+      <Nav.Link as={Link} to="/wishlist">Wishlist</Nav.Link>
     </Nav>
   </Navbar>
 )

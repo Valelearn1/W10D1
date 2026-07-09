@@ -32,6 +32,14 @@
   height: 100%;
 }
 
+.book-card {
+  transition: transform 0.2s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-8px);
+}
+
 .hero-jumbotron {
   position: relative;
   overflow: hidden;
@@ -46,7 +54,7 @@
 }
 
 .hero-jumbotron::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background-image: var(--hero-bg);
@@ -57,7 +65,7 @@
 }
 
 .hero-jumbotron::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -90,6 +98,50 @@
 
 .hero-cta {
   padding: 0.6rem 1.8rem;
+}
+
+.about-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 2rem 0;
+  border-radius: 12px;
+}
+
+.about-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--about-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(1px);
+  z-index: -2;
+}
+
+.about-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(60, 20, 90, 0.8) 0%,
+    rgba(20, 20, 30, 0.6) 100%
+  );
+  z-index: -1;
+}
+
+.about-content {
+  position: relative;
+  z-index: 1;
+  padding: 2rem;
+  color: white;
+  max-width: 600px;
 }
 
 @keyframes App-logo-spin {
